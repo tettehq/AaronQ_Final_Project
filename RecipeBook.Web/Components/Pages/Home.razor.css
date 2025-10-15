@@ -1,0 +1,10 @@
+/* Home page styling */
+h1 {
+    color: #3e654e;
+}
+
+.home-container {
+    height: 100vh;
+    color: white;
+    /* for contrast */
+}

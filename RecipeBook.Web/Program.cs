@@ -5,11 +5,21 @@ using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure EF Core with SQLite
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+// --- Configure EF Core based on environment ---
+if (builder.Environment.IsDevelopment())
+{
+    // Use SQLite for local development
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+}
+else
+{
+    // Use PostgreSQL in production (Render)
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+}
 
-// Configure Identity
+// --- Configure Identity ---
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = false;
@@ -27,43 +37,49 @@ builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 
-// Add Razor and Blazor services
+// --- Razor and Blazor services ---
 builder.Services.AddRazorPages();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 var app = builder.Build();
 
-// ✅ Seed the database only if it's empty
+// --- Seed the database ---
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     AppDbContext.Seed(db);
 }
 
-// Configure the HTTP request pipeline
+// --- HTTP request pipeline ---
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Optional: disable HTTPS redirection on Render
+// app.UseHttpsRedirection();
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
-app.MapRazorPages(); // For Identity UI pages
+app.MapRazorPages(); // Identity UI
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-// ✅ Logout endpoint — clean and async
+// --- Logout endpoint ---
 app.MapGet("/logout", async (SignInManager<ApplicationUser> signInManager) =>
 {
     await signInManager.SignOutAsync();
     return Results.Redirect("/");
 });
+
+// --- Listen on Render dynamic port ---
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+app.Urls.Add($"http://*:{port}");
 
 app.Run();

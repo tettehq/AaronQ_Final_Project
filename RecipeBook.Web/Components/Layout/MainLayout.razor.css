@@ -9,7 +9,10 @@
 
 main {
     flex: 1;
-    background-color: #f9f4e1;
+    background-image: url("/images/home-bg.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
 }
 
 .sidebar {
@@ -45,7 +48,7 @@ main {
 
 article.content {
     padding: 2rem;
-    background-color: #f9f4e1;
+    /* background-color: #f9f4e1; */
     min-height: 100vh;
     border-left: 1px solid #c3cab8;
 }
