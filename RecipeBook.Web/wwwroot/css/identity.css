@@ -1,0 +1,156 @@
+/* =========================
+   Identity Pages Styling
+   Palette: 
+   d13933, 516f58, c7cdbb, be8474, 97a18b, 872d28, e0c3a8, cd5c53
+   ========================= */
+
+body {
+    background-color: #c7cdbb;
+    color: #2d2d2d;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+}
+
+/* Card layout */
+.identity-container {
+    background-color: #e0c3a8;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 420px;
+    padding: 2rem;
+    box-sizing: border-box;
+    transition: transform 0.2s ease;
+}
+
+.identity-container:hover {
+    transform: translateY(-3px);
+}
+
+.identity-title {
+    color: #516f58;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+/* Input fields */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: 1px solid #97a18b;
+    background-color: #fff;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+input:focus {
+    border-color: #516f58;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(81, 111, 88, 0.2);
+}
+
+/* Buttons */
+button,
+input[type="submit"] {
+    width: 100%;
+    padding: 0.9rem;
+    background-color: #d13933;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+button:hover,
+input[type="submit"]:hover {
+    background-color: #872d28;
+    transform: translateY(-2px);
+}
+
+/* Links */
+a {
+    color: #be8474;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: #cd5c53;
+    text-decoration: underline;
+}
+
+/* Validation / Alerts */
+.text-danger {
+    color: #d13933;
+    font-size: 0.9rem;
+}
+
+.alert {
+    background-color: #fbeae8;
+    border-left: 4px solid #d13933;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.form-footer {
+    margin-top: 1.2rem;
+    text-align: center;
+    font-size: 0.95rem;
+}
+
+/* ================================
+   Top Navbar / Logo Section
+   ================================ */
+
+.top-row {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: transparent;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    z-index: 10;
+}
+
+/* Logo link */
+.navbar-brand {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+/* Logo image */
+.site-logo {
+    height: 200px;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.2s ease;
+}
+
+.site-logo:hover {
+    transform: scale(1.05);
+}
+
+/* Make sure the body content sits below the logo bar */
+.auth-wrapper {
+    margin-top: 80px;
+    /* push content slightly below the logo bar */
+}

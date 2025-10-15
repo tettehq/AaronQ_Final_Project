@@ -1,0 +1,136 @@
+@page "/recipes/{id:int}"
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using RecipeBook.Web.Data
+@attribute [Authorize]
+@inject AppDbContext Db
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthState
+@inject IJSRuntime JS
+
+@if (isLoading)
+{
+    <p><em>Loading…</em></p>
+}
+else if (notFound)
+{
+    <div class="recipe-alert">Recipe not found.</div>
+}
+else
+{
+    <div class="recipe-details-card">
+        <div class="recipe-header">
+            <div>
+                <h2 class="recipe-title">@recipe!.Title</h2>
+                @if (!string.IsNullOrWhiteSpace(recipe!.Category))
+                {
+                    <span class="recipe-badge">@recipe!.Category</span>
+                }
+            </div>
+
+            @if (canManage)
+            {
+                <div class="recipe-actions">
+                    <button class="recipe-btn recipe-btn-edit" @onclick="EditThis">Edit</button>
+                    <button class="recipe-btn recipe-btn-delete" @onclick="DeleteRecipe">Delete</button>
+                </div>
+            }
+        </div>
+
+        <hr class="recipe-divider" />
+
+        <h5 class="recipe-subtitle">Ingredients</h5>
+        @if (!string.IsNullOrWhiteSpace(recipe!.Ingredients))
+        {
+            <ul class="recipe-list">
+                @foreach (var line in SplitLines(recipe!.Ingredients!))
+                {
+                    <li>@line</li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p class="recipe-empty">No ingredients listed.</p>
+        }
+
+        <h5 class="recipe-subtitle">Steps</h5>
+        @if (!string.IsNullOrWhiteSpace(recipe!.Steps))
+        {
+            <ol class="recipe-list">
+                @foreach (var step in SplitLines(recipe!.Steps!))
+                {
+                    <li>@step</li>
+                }
+            </ol>
+        }
+        else
+        {
+            <p class="recipe-empty">No steps provided.</p>
+        }
+
+        <hr class="recipe-divider" />
+        <small class="recipe-meta">Created: @recipe!.CreatedAt.ToLocalTime().ToString("g")</small>
+        <small class="recipe-meta">Updated: @recipe!.UpdatedAt.ToLocalTime().ToString("g")</small>
+
+        <div class="recipe-footer">
+            <button class="recipe-btn recipe-btn-back" @onclick="BackToList">← Back to list</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+
+    private Recipe? recipe;
+    private bool isLoading = true;
+    private bool notFound = false;
+    private bool canManage = false;
+    private string? currentUserId;
+    private bool isAdmin;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthState.GetAuthenticationStateAsync();
+        var user = auth.User;
+        currentUserId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        isAdmin = user.IsInRole("Admin");
+
+        recipe = await Db.Recipes.FindAsync(id);
+
+        if (recipe is null)
+        {
+            notFound = true;
+            isLoading = false;
+            return;
+        }
+
+        canManage = isAdmin || recipe.OwnerId == currentUserId;
+        isLoading = false;
+    }
+
+    private IEnumerable<string> SplitLines(string text)
+        => text.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+               .Select(s => s.Trim())
+               .Where(s => !string.IsNullOrWhiteSpace(s));
+
+    private void EditThis()
+    {
+        if (recipe is null) return;
+        Nav.NavigateTo($"/recipes/edit/{recipe.Id}");
+    }
+
+    private void BackToList() => Nav.NavigateTo("/recipes");
+
+    private async Task DeleteRecipe()
+    {
+        if (recipe is null || !canManage) return;
+        var ok = await JS.InvokeAsync<bool>("confirm", "Are you sure you want to delete this recipe?");
+        if (!ok) return;
+
+        Db.Recipes.Remove(recipe);
+        await Db.SaveChangesAsync();
+        Nav.NavigateTo("/recipes");
+    }
+}

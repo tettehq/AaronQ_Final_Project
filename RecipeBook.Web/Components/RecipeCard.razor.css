@@ -1,0 +1,136 @@
+.recipe-card {
+    background-color: #f9f4e1;
+    color: #3b2b20;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(148, 111, 82, 0.25);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 320px;
+    min-height: 430px;
+    height: 100%;
+    border: 1px solid #c3cab8;
+    cursor: pointer;
+}
+
+.recipe-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 8px 18px rgba(148, 111, 82, 0.35);
+}
+
+/* ✅ Consistent aspect ratio for all recipe images */
+.recipe-image {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    display: block;
+    background-color: #deba95;
+    /* fallback tone for missing images */
+}
+
+/* Content section */
+.recipe-info {
+    flex-grow: 1;
+    padding: 1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Titles and text */
+.recipe-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    color: #3e654e;
+    text-align: center;
+}
+
+.recipe-category {
+    color: #946f52;
+    font-size: 0.95rem;
+    margin-bottom: 0.6rem;
+    text-align: center;
+    font-weight: 500;
+}
+
+.recipe-desc {
+    font-size: 0.95rem;
+    color: #3b2b20;
+    margin-bottom: 0.8rem;
+    line-height: 1.5;
+    text-align: justify;
+}
+
+/* Date */
+.recipe-date {
+    color: #7d2523;
+    font-size: 0.8rem;
+    margin-bottom: 0.8rem;
+    text-align: right;
+    font-style: italic;
+}
+
+/* Action buttons */
+.card-actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: 0.8rem;
+}
+
+/* Buttons */
+.btn-edit,
+.btn-delete {
+    padding: 0.45rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+/* Edit button – calm green tone */
+.btn-edit {
+    background-color: #3e654e;
+    color: #f9f4e1;
+    box-shadow: 0 2px 5px rgba(62, 101, 78, 0.3);
+}
+
+.btn-edit:hover {
+    background-color: #2f4939;
+    transform: scale(1.05);
+}
+
+/* Delete button – warm red tone */
+.btn-delete {
+    background-color: #cf3731;
+    color: #f9f4e1;
+    box-shadow: 0 2px 5px rgba(207, 55, 49, 0.3);
+}
+
+.btn-delete:hover {
+    background-color: #a1342e;
+    transform: scale(1.05);
+}
+
+/* Subtle fade-in for smoother loading */
+.recipe-card {
+    opacity: 0;
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        transform: translateY(10px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

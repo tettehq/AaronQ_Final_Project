@@ -1,0 +1,142 @@
+@page "/recipes/new"
+@using System.ComponentModel.DataAnnotations
+@using RecipeBook.Web.Data
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@attribute [Authorize]
+
+@inject AppDbContext Db
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IWebHostEnvironment Env
+@rendermode InteractiveServer
+
+<h3 class="page-title">Create New Recipe</h3>
+
+<EditForm Model="model" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="HandleInvalidSubmit" class="recipe-form">
+    <div class="form-container">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div>
+            <label>Title</label>
+            <InputText class="form-control" @bind-Value="model.Title" placeholder="e.g. Spaghetti Carbonara" />
+            <ValidationMessage For="@(() => model.Title)" />
+        </div>
+
+        <div>
+            <label>Category</label>
+            <InputText class="form-control" @bind-Value="model.Category" placeholder="e.g. Italian" />
+            <ValidationMessage For="@(() => model.Category)" />
+        </div>
+
+        <div>
+            <label>Ingredients</label>
+            <InputTextArea class="form-control" rows="4" @bind-Value="model.Ingredients" placeholder="List ingredients here..." />
+            <small class="text-muted">Separate each ingredient with a comma or new line.</small>
+            <ValidationMessage For="@(() => model.Ingredients)" />
+        </div>
+
+        <div>
+            <label>Steps</label>
+            <InputTextArea class="form-control" rows="6" @bind-Value="model.Steps" placeholder="Describe how to make it..." />
+            <ValidationMessage For="@(() => model.Steps)" />
+        </div>
+
+        <div>
+            <label>Recipe Image</label>
+            <InputFile OnChange="HandleFileSelected" class="form-control file-input" />
+            @if (!string.IsNullOrEmpty(previewUrl))
+            {
+                <img src="@previewUrl" alt="Image preview" class="preview-img" />
+            }
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-save">💾 Save Recipe</button>
+            <button type="button" class="btn-cancel" @onclick="Cancel">Cancel</button>
+        </div>
+    </div>
+</EditForm>
+
+
+@code {
+    private RecipeInput model = new();
+    private IBrowserFile? uploadedFile;
+    private string? previewUrl;
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        uploadedFile = e.File;
+
+        // Create a preview URL for the browser
+        var buffer = new byte[uploadedFile.Size];
+        await uploadedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).ReadAsync(buffer);
+        previewUrl = $"data:{uploadedFile.ContentType};base64,{Convert.ToBase64String(buffer)}";
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var ownerId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        string? imagePath = null;
+
+        if (uploadedFile is not null)
+        {
+            var uploadsDir = Path.Combine(Env.WebRootPath, "images", "recipes");
+            Directory.CreateDirectory(uploadsDir);
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(uploadedFile.Name)}";
+            var filePath = Path.Combine(uploadsDir, fileName);
+
+            using var stream = uploadedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+            using var fileStream = File.Create(filePath);
+            await stream.CopyToAsync(fileStream);
+
+            imagePath = $"/images/recipes/{fileName}";
+        }
+
+        var entity = new Recipe
+        {
+            Title = model.Title.Trim(),
+            Category = string.IsNullOrWhiteSpace(model.Category) ? null : model.Category.Trim(),
+            Ingredients = model.Ingredients.Trim(),
+            Steps = model.Steps.Trim(),
+            ImagePath = imagePath,
+            OwnerId = ownerId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        Db.Recipes.Add(entity);
+        await Db.SaveChangesAsync();
+
+        Nav.NavigateTo("/recipes");
+    }
+
+    private void Cancel() => Nav.NavigateTo("/recipes");
+
+    public class RecipeInput
+    {
+        [Required, StringLength(120)]
+        public string Title { get; set; } = string.Empty;
+
+        [StringLength(60)]
+        public string? Category { get; set; }
+
+        [Required]
+        public string Ingredients { get; set; } = string.Empty;
+
+        [Required]
+        public string Steps { get; set; } = string.Empty;
+    }
+
+    private void HandleInvalidSubmit(EditContext ctx)
+    {
+        Console.WriteLine("Invalid submit. Fields:");
+        foreach (var msg in ctx.GetValidationMessages())
+            Console.WriteLine($" - {msg}");
+    }
+}

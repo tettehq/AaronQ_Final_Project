@@ -1,0 +1,44 @@
+/* ================================
+   Auth Layout Wrapper
+   ================================ */
+
+body {
+    background-color: #c7cdbb;
+    /* same as login background for consistency */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 1rem;
+}
+
+.auth-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+main.auth-wrapper>* {
+    width: 100%;
+    max-width: 480px;
+}
+
+/* Smooth fade-in effect */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.auth-wrapper {
+    animation: fadeIn 0.4s ease-in-out;
+}

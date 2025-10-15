@@ -1,0 +1,67 @@
+@page "/recipes"
+@using System.Security.Claims
+@using RecipeBook.Web.Data
+@using Microsoft.AspNetCore.Authorization
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject AppDbContext Db
+@inject AuthenticationStateProvider AuthState
+
+<h2 class="page-title">My Recipes</h2>
+
+<div class="toolbar">
+    <AuthorizeView>
+        <Authorized>
+            <a class="btn-create" href="/recipes/new">➕ Create Recipe</a>
+        </Authorized>
+    </AuthorizeView>
+</div>
+
+@if (isLoading)
+{
+    <p><em>Loading…</em></p>
+}
+else if (!recipes.Any())
+{
+    <p>No recipes yet.</p>
+}
+else
+{
+    <div class="recipes-grid">
+        @foreach (var r in recipes)
+        {
+            <RecipeCard Recipe="r" CanManage="CanManage(r)" OnDeleted="HandleDelete" />
+        }
+    </div>
+}
+
+@code {
+    private List<Recipe> recipes = new();
+    private bool isLoading = true;
+    private string? currentUserId;
+    private bool isAdmin;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthState.GetAuthenticationStateAsync();
+        var user = auth.User;
+
+        currentUserId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        isAdmin = user.IsInRole("Admin");
+
+        IQueryable<Recipe> q = Db.Recipes.OrderByDescending(r => r.CreatedAt);
+        if (!isAdmin)
+            q = q.Where(r => r.OwnerId == currentUserId);
+
+        recipes = q.ToList();
+        isLoading = false;
+    }
+
+    private bool CanManage(Recipe r) => isAdmin || r.OwnerId == currentUserId;
+
+    private void HandleDelete(int id)
+    {
+        recipes.RemoveAll(x => x.Id == id);
+        StateHasChanged();
+    }
+}
